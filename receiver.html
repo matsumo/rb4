@@ -9,20 +9,40 @@
 	    height:720PX;
 	    width:1280PX;
       background-color:#000000;
-      padding: 8px;
       overflow: hidden;
 	  }
     img.icon{
+      position: absolute;
+      top: 0px;
+      left: 0px;
       height:64PX;
       width:64PX;
-      float: left;
     }
-    div.message{
-      float: left;
+    img.preview{
+      position: absolute;
+      bottom: 0px;
+      right: 0px;
+      opacity:0.7;
+    }
+    div.sname{
+      position: absolute;
+      top: 0px;
+      left: 72px;
       text-align:left;
       border:0px solid silver;
       display: table-cell;
-      vertical-align:top;
+      color:#c0c0c0;
+      font-weight:normal;
+      font-family:Verdana, Geneva, sans-serif;
+      font-size:32px;
+    }
+    div.message{
+      position: absolute;
+      top: 72px;
+      left: 0px;
+      text-align:left;
+      border:0px solid silver;
+      display: table-cell;
       color:#FFFFFF;
       font-weight:normal;
       font-family:Verdana, Geneva, sans-serif;
@@ -43,6 +63,8 @@
   <body>
     <div class="frame">
       <img id="icon" class="icon" src="images/64x64.png"/>
+      <img id="preview" class="preview" src="images/64x64.png"/>
+      <div id="sname" class="sname">name<br/>@name</div>
       <div id="message" class="message">received status</div>
       <div id="stamp" class="stamp">0s</div>
     </div>
@@ -91,7 +113,7 @@
           displayText(event.data);
           // inform all senders on the CastMessageBus of the incoming message event
           // sender message listener will be invoked
-          window.messageBus.send(event.senderId, event.data);
+          window.messageBus.send(event.senderId, 'OK'/*event.data*/);
         }
 
         // initialize the CastReceiverManager with an application status message
@@ -105,10 +127,14 @@
         var d = JSON.parse(text);
         if('status' in d){
           var s = d['status'];
-          var t = s['name']+' @'+s['screen_name']+'<br/>'+s['text'];
-          document.getElementById("message").innerHTML=t;
+          var n = s['name']+'<br/>@'+s['screen_name'];
+          document.getElementById("message").innerHTML=s['text'];
+          document.getElementById("sname").innerHTML=t;
           document.getElementById("icon").src=s['profile_image_url_https'];
           document.getElementById("stamp").innerHTML=Math.round(new Date().getTime()/1000-s['created_at'])+"s";
+          if('pictureUrl' in s){
+            document.getElementById("preview").src=s['pictureUrl'];
+          }
         }
         window.castReceiverManager.setApplicationState(text);
       };
