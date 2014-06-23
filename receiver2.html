@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <style type="text/css">
+	  body {
+	    overflow:hidden;
+	  }
+    div.frame{
+	    height:720PX;
+	    width:1280PX;
+      background-color:#000000;
+      overflow: hidden;
+	  }
+    img.icon{
+      position: absolute;
+      top: 0px;
+      left: 0px;
+      height:64PX;
+      width:64PX;
+    }
+    img.preview{
+      position: absolute;
+      bottom: 0px;
+      right: 0px;
+      opacity:0.7;
+    }
+    div.sname{
+      position: absolute;
+      top: 0px;
+      left: 72px;
+      text-align:left;
+      border:0px solid silver;
+      display: table-cell;
+      color:#c0c0c0;
+      font-weight:normal;
+      font-family:Verdana, Geneva, sans-serif;
+      font-size:32px;
+    }
+    div.message{
+      position: absolute;
+      top: 72px;
+      left: 0px;
+      text-align:left;
+      border:0px solid silver;
+      display: table-cell;
+      color:#FFFFFF;
+      font-weight:normal;
+      font-family:Verdana, Geneva, sans-serif;
+      font-size:40px;
+    }
+    div.stamp{
+      position: absolute;
+      top: 0px;
+      right: 0px;
+      color:#c0c0c0;
+      font-weight:normal;
+      font-family:Verdana, Geneva, sans-serif;
+      font-size:40px;
+    }
+    </style>
+    <title>akaitori4</title>
+  </head>
+  <body>
+    <div class="frame">
+      <img id="icon" class="icon" src="images/64x64.png"/>
+      <img id="preview" class="preview" src="images/64x64.png"/>
+      <div id="sname" class="sname">name<br/>@name</div>
+      <div id="message" class="message">received status</div>
+      <div id="stamp" class="stamp">0s</div>
+    </div>
+    <script type="text/javascript" src="//www.gstatic.com/cast/sdk/libs/receiver/2.0.0/cast_receiver.js"></script>
+    <script type="text/javascript">
+      window.onload = function() {
+        cast.receiver.logger.setLevelValue(0);
+        window.castReceiverManager = cast.receiver.CastReceiverManager.getInstance();
+        console.log('Starting Receiver Manager');
+        
+        // handler for the 'ready' event
+        castReceiverManager.onReady = function(event) {
+          console.log('Received Ready event: ' + JSON.stringify(event.data));
+          window.castReceiverManager.setApplicationState("Application status is ready...");
+        };
+        
+        // handler for 'senderconnected' event
+        castReceiverManager.onSenderConnected = function(event) {
+          console.log('Received Sender Connected event: ' + event.data);
+          console.log(window.castReceiverManager.getSender(event.data).userAgent);
+        };
+        
+        // handler for 'senderdisconnected' event
+        castReceiverManager.onSenderDisconnected = function(event) {
+          console.log('Received Sender Disconnected event: ' + event.data);
+          if (window.castReceiverManager.getSenders().length == 0) {
+	        window.close();
+	      }
+        };
+        
+        // handler for 'systemvolumechanged' event
+        castReceiverManager.onSystemVolumeChanged = function(event) {
+          console.log('Received System Volume Changed event: ' + event.data['level'] + ' ' +
+              event.data['muted']);
+        };
+
+        // create a CastMessageBus to handle messages for a custom namespace
+        window.messageBus =
+          window.castReceiverManager.getCastMessageBus(
+              'urn:x-cast:com.matsumo.rb4');
+
+        // handler for the CastMessageBus message event
+        window.messageBus.onMessage = function(event) {
+          console.log('Message [' + event.senderId + ']: ' + event.data);
+          // display the message from the sender
+          displayText(event.data);
+          // inform all senders on the CastMessageBus of the incoming message event
+          // sender message listener will be invoked
+          window.messageBus.send(event.senderId, 'OK'/*event.data*/);
+        }
+
+        // initialize the CastReceiverManager with an application status message
+        window.castReceiverManager.start({statusText: "Application is starting"});
+        console.log('Receiver Manager started');
+      };
+      
+      // utility function to display the text message in the input field
+      function displayText(text) {
+        console.log(text);
+        var d = JSON.parse(text);
+        if('status' in d){
+          var s = d['status'];
+          var n = s['name']+'<br/>@'+s['screen_name'];
+          document.getElementById("message").innerHTML=s['text'];
+          document.getElementById("sname").innerHTML=t;
+          document.getElementById("icon").src=s['profile_image_url_https'];
+          document.getElementById("stamp").innerHTML=Math.round(new Date().getTime()/1000-s['created_at'])+"s";
+          if('pictureUrl' in s){
+            document.getElementById("preview").src=s['pictureUrl'];
+          }
+        }
+        window.castReceiverManager.setApplicationState(text);
+      };
+    </script>
+  </body>
+</html>
