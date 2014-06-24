@@ -34,7 +34,7 @@
       color:#c0c0c0;
       font-weight:normal;
       font-family:Verdana, Geneva, sans-serif;
-      font-size:32px;
+      font-size:30px;
     }
     div.message{
       position: absolute;
@@ -129,11 +129,15 @@
           var s = d['status'];
           var n = s['name']+'<br/>@'+s['screen_name'];
           document.getElementById("message").innerHTML=s['text'];
-          document.getElementById("sname").innerHTML=t;
+          document.getElementById("sname").innerHTML=n;
           document.getElementById("icon").src=s['profile_image_url_https'];
           document.getElementById("stamp").innerHTML=Math.round(new Date().getTime()/1000-s['created_at'])+"s";
+          var p = document.getElementById("preview");
           if('pictureUrl' in s){
-            document.getElementById("preview").src=s['pictureUrl'];
+            p.src=s['pictureUrl'];
+            p.style.visibility='visible';
+          }else{
+            p.style.visibility='hidden';
           }
         }
         window.castReceiverManager.setApplicationState(text);
